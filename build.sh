@@ -22,6 +22,34 @@ else
 	echo "${CONFLINE} already exists in the local.conf file"
 fi
 
+# Enable rm_work to reduce disk usage
+RMWORK_LINE='INHERIT += "rm_work"'
+EXCLUDE_LINE='RM_WORK_EXCLUDE += "core-image-aesd"'
+EXCLUDE_LINE_2='RM_WORK_EXCLUDE += "aesd-assignments"'
+
+grep -q "${RMWORK_LINE}" conf/local.conf
+if [ $? -ne 0 ]; then
+    echo "Appending rm_work inherit to local.conf"
+    echo ${RMWORK_LINE} >> conf/local.conf
+else
+    echo "rm_work already enabled in local.conf"
+fi
+
+grep -q "${EXCLUDE_LINE}" conf/local.conf
+if [ $? -ne 0 ]; then
+    echo "Excluding core-image-aesd from rm_work"
+    echo ${EXCLUDE_LINE} >> conf/local.conf
+else
+    echo "core-image-aesd already excluded from rm_work"
+fi
+
+grep -q "${EXCLUDE_LINE_2}" conf/local.conf
+if [ $? -ne 0 ]; then
+    echo "Excluding aesd-assignments from rm_work"
+    echo ${EXCLUDE_LINE_2} >> conf/local.conf
+else
+    echo "aesd-assignments already excluded from rm_work"
+fi
 
 bitbake-layers show-layers | grep "meta-aesd" > /dev/null
 layer_info=$?
@@ -35,3 +63,5 @@ fi
 
 set -e
 bitbake core-image-aesd
+
+
