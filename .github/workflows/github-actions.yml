@@ -16,25 +16,35 @@ jobs:
           - uses: webfactory/ssh-agent@v0.5.4
             with:
                  ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          - name: Run build
-            timeout-minutes: 600
+          - name: Check Python version
+            timeout-minutes: 15
             run: |
-               docker run --rm \
+                docker run --rm \
+                 -e PYTHON=/usr/local/bin/python3.10 \
+                 cuaesd/aesd-autotest:24-assignment6-yocto \
+                 python3 --version
+          - name: Run build
+            timeout-minutes: 60000
+            run: |
+                export PYTHON=/usr/local/bin/python3.10
+                export BB_PYTHON=/usr/local/bin/python3.10
+
+                docker run --rm \
                  -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
                  -e GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
                  -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
                  cuaesd/aesd-autotest:24-assignment6-yocto \
                  --workdir=${GITHUB_WORKSPACE} \
-                 echo "Skipping Build"
+                 ./build.sh
           - name: Cleanup
             if: always()
             run: |
               ssh-add -D
           - name: Run full test
-            timeout-minutes: 15
+            timeout-minutes: 1500
             run: |
                docker run --rm \
                  -v ${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE} \
                  cuaesd/aesd-autotest:assignment6-yocto \
                  --workdir=${GITHUB_WORKSPACE} \
-                 /bin/bash -c "export SKIP_BUILD=1 && ./full-test.sh"
+                 ./full-test.sh
